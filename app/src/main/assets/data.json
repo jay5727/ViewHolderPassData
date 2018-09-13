@@ -1,0 +1,34 @@
+{
+  "data": {
+    "Skills": [
+      {
+        "Name": "Biker",
+        "isSelected": false
+      },
+      {
+        "Name": "DeliveryBoy",
+        "isSelected": false
+      },
+      {
+        "Name": "SalesBoy",
+        "isSelected": false
+      },
+      {
+        "Name": "Banker",
+        "isSelected": false
+      }
+    ],
+    "Location": [
+      {
+        "Name": "Mumbai",
+        "isSelected": false
+      },
+      {
+        "Name": "Pune",
+        "isSelected": false
+      }
+    ],
+    "RecentlyAdded": [],
+    "Gender": []
+  }
+}
