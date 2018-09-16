@@ -22,8 +22,10 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements MyCustomParentAda
 
     @BindView(R.id.apply)
     Button apply;
+
     Context ctx;
 
     MyCustomParentAdapter parentAdapter;
@@ -56,71 +59,29 @@ public class MainActivity extends AppCompatActivity implements MyCustomParentAda
         ctx = this;
         ButterKnife.bind(this);
 
- /*       HashMap<String, Object> retMap = new Gson().fromJson(
-                getAssetJsonData(getApplicationContext()), new TypeToken<HashMap<String, Object>>() {
-                }.getType()
-        );
-        String data = getAssetJsonData(getApplicationContext());
-
-        Type type = new TypeToken<Data>() {
-        }.getType();
-        Data modelObject = new Gson().fromJson(data, type);
-
+        HashMap<String, String> hMapHeaderAndCount = new HashMap<>();
+        LinkedHashMap<String, List<CustomModel>> objHashmap = new LinkedHashMap<>();
+        JSONObject objRoot = null;
         try {
-            Map<String, Object> myModel = jsonToMap(new JSONObject(data));
-
-            HashMap<String, List<CustomModel>> obj = (HashMap<String, List<CustomModel>>)
-                    jsonToMap(new JSONObject(data)).get("data");
-
-            HashMap<String, List<CustomModel>>  map = new Gson().fromJson(data, new TypeToken<HashMap<String, String>>(){}.getType());
-            String str = null;
-            HashMap<String, List<CustomModel>> obj = new HashMap<>();
-            obj.put("Skills", Arrays.asList(
-                    (new CustomModel("Biker", false)),
-                    (new CustomModel("DeliveryBoy", false)),
-                    (new CustomModel("SalesBoy", false)),
-                    (new CustomModel("Banker", false))
-
-            ));
-            obj.put("Location", Arrays.asList(
-                    (new CustomModel("Mumbai", false)),
-                    (new CustomModel("Pune", false)),
-                    (new CustomModel("Thane", false)),
-                    (new CustomModel("Vikhroli", false))
-
-            ));
-
-            RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
-            recycl1.setLayoutManager(mLayoutManager);
-            recycl1.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-            recycl1.setItemAnimator(new DefaultItemAnimator());
-            recycl1.setNestedScrollingEnabled(false);
-            parentAdapter = new MyCustomParentAdapter(ctx, obj, this);
-            recycl1.setAdapter(parentAdapter);
-        }
-        catch (JSONException e) {
-            e.printStackTrace();
-        }
- */
-        HashMap<String, List<CustomModel>> objHashmap = new HashMap<>();
-        JSONObject obj = null;
-        try {
-            obj = new JSONObject(getAssetJsonData(getApplicationContext()));
+            objRoot = new JSONObject(getAssetJsonData(getApplicationContext()));
             List<CustomModel> lstCustomModel = null;
             String key = null;
-            JSONObject jsonArrayHeader = obj.getJSONObject("data");
+            JSONObject jsonObjHeader = objRoot.getJSONObject("data");
 //            for (int i = 0; i < jsonArrayHeader.length(); i++)
 //            {
-            Iterator<String> iter = jsonArrayHeader.keys();
+            Iterator<String> iter = jsonObjHeader.keys();
             while (iter.hasNext()) {
                 key = iter.next();
+                hMapHeaderAndCount.put(key, "0");
                 try {
-                    JSONArray jo_inside = jsonArrayHeader.getJSONArray(key);
+                    JSONArray jsonArray = jsonObjHeader.getJSONArray(key);
                     lstCustomModel = new ArrayList<>();
-                    for (int j = 0; j < jo_inside.length(); j++) {
-                        JSONObject innerArray = (JSONObject) jo_inside.get(j);
-                        String name = (String) innerArray.get("Name");
-                        boolean flag = (boolean) innerArray.get("isSelected");
+                    //loop through every JSONArray
+                    for (int j = 0; j < jsonArray.length(); j++) {
+                        //loop through every JSONObject
+                        JSONObject jsonObject = (JSONObject) jsonArray.get(j);
+                        String name = (String) jsonObject.get("Name");
+                        boolean flag = (boolean) jsonObject.get("isSelected");
                         lstCustomModel.add(new CustomModel(name, flag));
                     }
                     objHashmap.put(key, lstCustomModel);
@@ -139,12 +100,12 @@ public class MainActivity extends AppCompatActivity implements MyCustomParentAda
         recycl1.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recycl1.setItemAnimator(new DefaultItemAnimator());
         recycl1.setNestedScrollingEnabled(false);
-        parentAdapter = new MyCustomParentAdapter(ctx, objHashmap, this);
+        parentAdapter = new MyCustomParentAdapter(ctx, hMapHeaderAndCount, objHashmap, this);
         recycl1.setAdapter(parentAdapter);
 
 
 //        String str = "Jay,Abhi,Aravind";
-//        Lpareist<String> lst = Arrays.asList(str.split(","));
+//        List<String> lst = Arrays.asList(str.split(","));
 //        List<CustomModel> lstCustom = null;
 //        lstCustom = new ArrayList<>();
 //        for (int i = 0; i < lst.size(); i++) {
@@ -215,17 +176,6 @@ public class MainActivity extends AppCompatActivity implements MyCustomParentAda
         return list;
     }
 
-    @Override
-    public void changeItems(List<CustomModel> items) {
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(ctx);
-        recycle2.setLayoutManager(mLayoutManager);
-        recycle2.addItemDecoration(new DividerItemDecoration(ctx, LinearLayoutManager.VERTICAL));
-        recycle2.setItemAnimator(new DefaultItemAnimator());
-        recycle2.setNestedScrollingEnabled(false);
-        //mAdapter  =new ChildAdapter()
-        recycle2.setAdapter(new ChildAdapter(this, items));
-        //recycle2.setAdapter(new ChildAdapter(this, parentAdapter.lstData, items, null));
-    }
 
     @OnClick(R.id.apply)
     public void onClick() {
@@ -253,4 +203,136 @@ public class MainActivity extends AppCompatActivity implements MyCustomParentAda
             }
         }
     }
+
+    @Override
+    public void changeItems(List<CustomModel> items/*, ChildAdapter.ListenerCountCallback myCustomParentAdapter*/) {
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(ctx);
+        recycle2.setLayoutManager(mLayoutManager);
+        recycle2.addItemDecoration(new DividerItemDecoration(ctx, LinearLayoutManager.VERTICAL));
+        recycle2.setItemAnimator(new DefaultItemAnimator());
+        recycle2.setNestedScrollingEnabled(false);
+        recycle2.setAdapter(new ChildAdapter(this, items, parentAdapter));
+    }
+
+    void populateDummyData() {
+        LinkedHashMap<String, List<CustomModel>> hList = new LinkedHashMap<>();
+        HashMap<String, String> hMapHeaderAndCount = new HashMap<>();
+        hMapHeaderAndCount.put("Skills", "0");
+        hMapHeaderAndCount.put("Location", "0");
+
+        hList.put("Skills", Arrays.asList(
+                new CustomModel("Biker", false),
+                new CustomModel("DeliveryBoy", false),
+                new CustomModel("SalesBoy", false),
+                new CustomModel("Banker", false)
+        ));
+
+
+        hList.put("Location", Arrays.asList(
+                new CustomModel("Mumbai", false),
+                new CustomModel("Pune", false),
+                new CustomModel("Thane", false),
+                new CustomModel("Vikhroli", false)
+        ));
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
+        recycl1.setLayoutManager(mLayoutManager);
+        recycl1.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+        recycl1.setItemAnimator(new DefaultItemAnimator());
+        recycl1.setNestedScrollingEnabled(false);
+        parentAdapter = new MyCustomParentAdapter(ctx, hMapHeaderAndCount, hList, this);
+        recycl1.setAdapter(parentAdapter);
+    }
+
+    //region Ignore
+
+ /*       HashMap<String, Object> retMap = new Gson().fromJson(
+                getAssetJsonData(getApplicationContext()), new TypeToken<HashMap<String, Object>>() {
+                }.getType()
+        );
+        String data = getAssetJsonData(getApplicationContext());
+
+        Type type = new TypeToken<Data>() {
+        }.getType();
+        Data modelObject = new Gson().fromJson(data, type);
+
+        try {
+            Map<String, Object> myModel = jsonToMap(new JSONObject(data));
+
+            HashMap<String, List<CustomModel>> obj = (HashMap<String, List<CustomModel>>)
+                    jsonToMap(new JSONObject(data)).get("data");
+
+            HashMap<String, List<CustomModel>>  map = new Gson().fromJson(data, new TypeToken<HashMap<String, String>>(){}.getType());
+            String str = null;
+            HashMap<String, List<CustomModel>> obj = new HashMap<>();
+            obj.put("Skills", Arrays.asList(
+                    (new CustomModel("Biker", false)),
+                    (new CustomModel("DeliveryBoy", false)),
+                    (new CustomModel("SalesBoy", false)),
+                    (new CustomModel("Banker", false))
+
+            ));
+            obj.put("Location", Arrays.asList(
+                    (new CustomModel("Mumbai", false)),
+                    (new CustomModel("Pune", false)),
+                    (new CustomModel("Thane", false)),
+                    (new CustomModel("Vikhroli", false))
+
+            ));
+
+            RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
+            recycl1.setLayoutManager(mLayoutManager);
+            recycl1.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+            recycl1.setItemAnimator(new DefaultItemAnimator());
+            recycl1.setNestedScrollingEnabled(false);
+            parentAdapter = new MyCustomParentAdapter(ctx, obj, this);
+            recycl1.setAdapter(parentAdapter);
+        }
+        catch (JSONException e) {
+            e.printStackTrace();
+        }
+ */
+
+    //...
+    /* HashMap<HashMap<String, String>, List<CustomModel>> lstHashMap = new HashMap<>();
+
+        HashMap<String, String> headerAndCount = new HashMap<>();
+        //headerAndCount.put("Skills", "1");
+        //headerAndCount.put("Location", "2");
+        for (int i = 0; i < 2; i++) {
+            headerAndCount = new HashMap<>();
+            headerAndCount.put(i == 0 ? ("Skills") : ("Location"), i + "");
+            lstHashMap.put(headerAndCount, Arrays.asList(
+                    (new CustomModel(i == 0 ? "Biker" : "Thane", false)),
+                    (new CustomModel(i == 0 ? "DeliveryBoy" : "NaviMumbai", false)),
+                    (new CustomModel(i == 0 ? "SalesBoy" : "Mumbai", false)),
+                    (new CustomModel(i == 0 ? "Banker" : "Pune", false))
+            ));
+            int x = 5;
+        }*/
+
+    //List< Map<String, List<CustomModel>> > list = new ArrayList<Map<String, List<CustomModel>>>();//This is the final list you need
+
+        /*Map<String, List<CustomModel>> map1 = new HashMap<>();
+        //This is one instance of the  map you want to store in the above list.
+        //List<String> arraylist1 = new ArrayList<String>();
+        //arraylist1.add("Text1");//And so on..
+        map1.put("Skills", Arrays.asList(
+                new CustomModel("Biker", false),
+                new CustomModel("DeliveryBoy", false),
+                new CustomModel("SalesBoy", false),
+                new CustomModel("Banker", false)
+                ));
+        //And so on...
+        list.add(map1);//In this way you can add.
+
+        Map<String, List<CustomModel>> map2 = new HashMap<>();
+        map2.put("Location", Arrays.asList(
+                (new CustomModel("Mumbai", false)),
+                (new CustomModel("Pune", false)),
+                (new CustomModel("Thane", false)),
+                (new CustomModel("Vikhroli", false))));
+
+
+        list.add(map2);//In this way you can add.*/
+    //endregion
 }

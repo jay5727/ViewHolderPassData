@@ -1,9 +1,6 @@
 package com.jay.viewholderpassdata.adapter;
 
 import android.content.Context;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +13,7 @@ import com.jay.viewholderpassdata.model.CustomModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -23,29 +21,35 @@ import java.util.List;
  */
 
 public class MyCustomParentAdapter extends RecyclerView.Adapter<MyCustomParentAdapter.ViewHolder>
-        //implements ChildAdapter.ListenerCountCallback
-{
+        implements ChildAdapter.ListenerCountCallback {
 
-
-    public HashMap<String, List<CustomModel>> lstData = null;
+    private HashMap<String, String> hMapHeaderAndCount = null;
+    public LinkedHashMap<String, List<CustomModel>> lstData = null;
+    //public List<Map<String, List<CustomModel>>> lstData=null;
+    //HashMap<List<String>, List<CustomModel>> lstData = new HashMap<>();
+    private String lastKeyClicked = null;
     public List<String> lstKey = null;
-    Context ctx;
+    private Context ctx;
+
 
     private ChildCallback mListener;
 
-    /*@Override
-    public void notifyParentAdapter(int parentPosition,List<CustomModel> items) {
-        //lstData.get(parentPosition)
-    }*/
-
     public interface ChildCallback {
         void changeItems(List<CustomModel> items);
+        //void changeItems(List<CustomModel> items, ChildAdapter.ListenerCountCallback adapter);
+        //void changeItems(List<CustomModel> items, MyCustomParentAdapter adapter);
     }
 
-    public MyCustomParentAdapter(Context ctx, HashMap<String, List<CustomModel>> lstData, ChildCallback childCallback) {
+    public MyCustomParentAdapter(Context ctx
+                               /*  HashMap<List<String>, List<CustomModel>> lstData*/
+                                 /*List<Map<String, List<CustomModel>>> lstData*/,
+                                 HashMap<String, String> hMapHeaderAndCount,
+                                 LinkedHashMap<String, List<CustomModel>> lstData,
+                                 ChildCallback childCallback) {
         this.mListener = childCallback;
         this.ctx = ctx;
         this.lstData = lstData;
+        this.hMapHeaderAndCount = hMapHeaderAndCount;
         this.lstKey = getKeys();
     }
 
@@ -58,25 +62,21 @@ public class MyCustomParentAdapter extends RecyclerView.Adapter<MyCustomParentAd
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        if (lstKey == null) return;
-        String key = lstKey.get(position);
+    public void onBindViewHolder(ViewHolder holder, final int position) {
 
-        final List<CustomModel> lstChild = lstData.get(key);
+        final List<CustomModel> lstChild = lstData.get(lstKey.get(position));
+        String count = hMapHeaderAndCount.get(lstKey.get(position)) != null
+                && !hMapHeaderAndCount.get(lstKey.get(position)).equals("0") ?
+                hMapHeaderAndCount.get(lstKey.get(position)) : "";
 
+        holder.tvCount.setText(count);
         holder.header_name.setText(lstKey.get(position));
-
-        /*RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(ctx);
-        holder.recycle2.setLayoutManager(mLayoutManager);
-        holder.recycle2.addItemDecoration(new DividerItemDecoration(ctx, LinearLayoutManager.VERTICAL));
-        holder.recycle2.setItemAnimator(new DefaultItemAnimator());
-        holder.recycle2.setAdapter(new SkillFilterAdapter(lst));*/
-
 
         holder.header_name.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.changeItems(lstChild);
+                lastKeyClicked = lstKey.get(position);
+                mListener.changeItems(lstChild/*, MyCustomParentAdapter.this*/);
             }
         });
     }
@@ -86,6 +86,13 @@ public class MyCustomParentAdapter extends RecyclerView.Adapter<MyCustomParentAd
         return lstData == null ? 0 : lstData.size();
     }
 
+    @Override
+    public void notifyParentAdapter(int count/*, List<CustomModel> items*/) {
+        if (lastKeyClicked != null) {
+            hMapHeaderAndCount.put(lastKeyClicked, String.valueOf(count));
+            notifyDataSetChanged();
+        }
+    }
 
     private List<String> getKeys() {
         if (lstData == null)

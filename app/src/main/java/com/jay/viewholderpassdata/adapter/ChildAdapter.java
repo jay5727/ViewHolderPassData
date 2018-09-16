@@ -23,37 +23,24 @@ import java.util.List;
  */
 
 public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ViewHolder> {
-
-    HashMap<String, List<CustomModel>> lstData = null;
-    List<CustomModel> lstChild = null;
-    List<String> lstKey = null;
-
-    Context ctx;
-
-   /* private ListenerCountCallback mListener;
+    //MyCustomParentAdapter mParentAdapter = null;
+    private List<CustomModel> lstChild = null;
+    private Context ctx;
+    private int count = 0;
+    private ListenerCountCallback mListener;
 
     public interface ListenerCountCallback {
-        void notifyParentAdapter(int position, List<CustomModel> items);
-    }*/
-
-    public ChildAdapter(Context ctx, /*HashMap<String, List<CustomModel>> lstData,*/ List<CustomModel> lstChild)
-    //,ListenerCountCallback listener)
-    {
-        //this.mListener = listener;
-        //this.lstData = lstData;
-        this.lstKey = getKeys();
-        this.lstChild = lstChild;
-        this.ctx = ctx;
+        void notifyParentAdapter(int count/*, List<CustomModel> items*/);
     }
 
-    private List<String> getKeys() {
-        if (lstData == null)
-            return null;
-        List<String> keys = new ArrayList<>();
-        for (String key : lstData.keySet()) {
-            keys.add(key);
-        }
-        return keys;
+
+    public ChildAdapter(Context ctx,
+                        List<CustomModel> lstChild,
+                        ListenerCountCallback adapter) {
+        this.mListener = adapter;
+        //this.mParentAdapter = adapter;
+        this.lstChild = lstChild;
+        this.ctx = ctx;
     }
 
     @Override
@@ -65,7 +52,7 @@ public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-
+        count += lstChild.get(position).getIsSelected() ? 1 : 0;
         holder.childheader_name.setText(lstChild.get(position).getName());
      /*   holder.tickmark.setBackgroundResource(lst.get(position).getIsSelected() ?
                 R.drawable.correctgreen : R.drawable.correctgray);*/
@@ -74,15 +61,18 @@ public class ChildAdapter extends RecyclerView.Adapter<ChildAdapter.ViewHolder> 
                 R.drawable.correctgreen : R.drawable.correctgray));
 
         holder.linLayParent.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                //TOGGLE IT
+                //TOGGLE isSelected boolean value...!
                 lstChild.get(position).setIsSelected(!lstChild.get(position).getIsSelected());
+                count += lstChild.get(position).getIsSelected() ? 1 : -1;
                 holder.tickmark.setBackgroundDrawable(ContextCompat.getDrawable(ctx, lstChild.get(position).getIsSelected() ?
                         R.drawable.correctgreen : R.drawable.correctgray));
-                /*if (mListener != null) {
-                    mListener.notifyParentAdapter(position, lstChild);
-                }*/
+
+                if (mListener != null) {
+                    mListener.notifyParentAdapter(count/*, lstChild*/);
+                }
             }
         });
     }
